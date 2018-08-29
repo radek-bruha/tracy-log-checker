@@ -1,0 +1,131 @@
+<?php
+
+use Bruha\Tracy\Log;
+use Bruha\Tracy\LogCheckerPanel;
+use Tracy\Helpers;
+
+?>
+<h1>Log Checker: Log files contains <?=LogCheckerPanel::number($logsCount)?> rows with <?=LogCheckerPanel::number(count($logs))?> satisfying logs with <?=LogCheckerPanel::number($occurrencesCount)?> occurrences</h1>
+<style>
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel {
+        width: 1250px !important;
+        max-width: 1250px !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel h1 {
+        width: 100% !important;;
+        max-width: 1250px !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tr th {
+        text-align: center !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tr th.fixed-width {
+        min-width: 150px !important;
+        width: 150px !important;
+        max-width: 150px !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tr td {
+        background-color: #FDF5CE !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tr td.link {
+        cursor: pointer !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tr td.center {
+        text-align: center !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tr td.fixed-width {
+        min-width: 150px !important;
+        width: 150px !important;
+        max-width: 150px !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tr.separator td {
+        background-color: #FFFFFF !important;
+    }
+
+    #tracy-debug-panel-Bruha-Tracy-LogCheckerPanel tbody:last-child tr.separator:last-child {
+        display: none;
+    }
+</style>
+<script>
+    let elements = document.getElementsByClassName('open-close');
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].style.display = 'none';
+    }
+
+    elements = document.getElementsByClassName('delete');
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].onclick = function(event) {
+            return confirm('Do you really want remove this log with all occurrences?');
+        };
+    }
+
+    elements = document.getElementsByClassName('delete-all');
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].onclick = function(event) {
+            return confirm('Do you really want remove this all logs with all occurrences?');
+        };
+    }
+
+    function openClose(selector)
+    {
+        const elements = document.getElementsByClassName(selector);
+        for (let i = 0; i < elements.length; i++) {
+            elements[i].style.display = elements[i].style.display === 'none' ? 'table-row-group' : 'none';
+        }
+    }
+</script>
+<div class='tracy-inner'>
+    <table>
+        <thead>
+            <tr>
+                <th class='fixed-width'>DateTime</th>
+                <th class='fixed-width'>Occurrences</th>
+                <th>Type &amp; Message &amp; File</th>
+                <th class='fixed-width'>Show Log</th>
+                <th class='fixed-width'><a href='<?=LogCheckerPanel::link('log-checker-directory-delete=true')?>' class='delete-all'>Delete All Logs</a></th>
+            </tr>
+        </thead>
+<?php /** @var Log[] $logs */
+foreach ($logs as $log): ?>
+        <tbody>
+            <tr>
+                <td class='fixed-width center'><?=$log->getTimestamp()->format('d. m. Y H:i:s')?></td>
+                <td class='fixed-width center'><?=LogCheckerPanel::number(count($log->getInnerLogs()))?></td>
+                <td class='link center' title='Toggle Occurrences' onclick="openClose('<?=$log->getHash()?>');"><strong><?=$log->getType()?></strong></td>
+                <td class='fixed-width center'>
+                    <a href='<?=LogCheckerPanel::link(sprintf('log-checker-file-select=%s', $log->getFile()))?>'>Show Log</a>
+                </td>
+                <td class='fixed-width center'>
+                    <a href='<?=LogCheckerPanel::link(sprintf('log-checker-file-delete=%s', $log->getFile()))?>' class='delete'>Delete Log</a>
+                </td>
+            </tr>
+            <tr>
+                <td colspan='5' class='center'><?=$log->getMessage()?></td>
+            </tr>
+            <tr>
+                <td colspan='5' class='center'><i><?=Helpers::editorLink(explode(':', $log->getPath())[0], explode(':', $log->getPath())[1])?></i></td>
+            </tr>
+        </tbody>
+        <tbody class='open-close <?=$log->getHash()?>'>
+<?php foreach ($log->getInnerLogs() as $innerLog): ?>
+            <tr>
+                <td class='fixed-width center'><?=$innerLog->getTimestamp()->format('d. m. Y H:i:s')?></td>
+                <td colspan='4'><a href='<?=$innerLog->getUrl()?>' target='_blank'><?=$innerLog->getUrl()?></a></td>
+            </tr>
+<?php endforeach; ?>
+        </tbody>
+        <tbody>
+            <tr class='separator'>
+                <td colspan='5' class='separator'>&nbsp;</td>
+            </tr>
+        </tbody>
+<?php endforeach; ?>
+    </table>
+</div>

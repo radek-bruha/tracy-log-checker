@@ -1,0 +1,26 @@
+{
+    "name": "radek-bruha/tracy-log-checker",
+    "license": "unlicense",
+    "autoload": {
+        "psr-4": {
+            "Bruha\\Tracy\\": "src"
+        }
+    },
+    "require": {
+        "php": "^7.1",
+        "tracy/tracy": "^2.5"
+    },
+    "require-dev": {
+        "radek-bruha/coding-standard": "^1.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "enable-patching": true
+    }
+}

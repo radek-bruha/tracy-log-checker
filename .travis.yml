@@ -1,0 +1,16 @@
+language: php
+
+php:
+    - 7.1
+    - 7.2
+
+before_script:
+    - composer install -o --no-ansi --no-suggest
+    - composer update -o --no-ansi --no-suggest
+
+script:
+    - vendor/bin/phpcs src -p --extensions=php --standard=ruleset.xml
+    - vendor/bin/phpstan analyse src -c ruleset.neon -l 7
+
+notifications:
+    email: false
