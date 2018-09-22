@@ -21,6 +21,7 @@ final class LogCheckerPanel implements IBarPanel
     private const SUCCESS = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAMAAAAMCGV4AAAAflBMVEUAAAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAAAiAASFJtHAAAAKXRSTlMAAQMEBQ0QERMXLC8wMTQ1OkNHTk9SWV9hYmdwkZilvMjP2t7v8/n7/Y4B51wAAABmSURBVAgdbcEHEoIwAEXBpyhiV7A3sBDy739BQ0JmGMddvPRK37Te0zN46wZropmkDeWczklOUX+GBBcFC7xsqeBIa/RMS3mHMc5E0bnCSayiF62dohV/3OVZ2xizBR6mserk/PoCRMkPd/99Fe4AAAAASUVORK5CYII=';
     private const ERROR   = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA8AAAAPCAMAAAAMCGV4AAAAflBMVEUAAAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD/AAD7v5q5AAAAKXRSTlMAAQMEBQ0QERMXLC8wMTQ1OkNHTk9SWV9hYmdwkZilvMjP2t7v8/n7/Y4B51wAAABmSURBVAgdbcEHEoIwAEXBpyhiV7A3sBDy739BQ0JmGMddvPRK37Te0zN46wZropmkDeWczklOUX+GBBcFC7xsqeBIa/RMS3mHMc5E0bnCSayiF62dohV/3OVZ2xizBR6mserk/PoCRMkPd/99Fe4AAAAASUVORK5CYII=';
     private const LABEL   = '<span title="Log Checker"><img src="%s" style="padding-left: 2px; margin-top: 5px;"><span class="tracy-label"></span></span>';
+    private const CACHE   = 'LogChecker.cache';
 
     private const LOGS_REGEX = '#\[(.+?)\] (.+?): (.+?) in ((?:\S+?):(?:\d+))(?:.+?)  @  (.+?)  @@  (.+)#';
     private const LOG_REGEX  = '#exception--\d{4}-\d{2}-\d{2}--\d{2}-\d{2}--\S{10}\.html#';
@@ -39,6 +40,11 @@ final class LogCheckerPanel implements IBarPanel
      * @var int
      */
     private $occurrencesCount = 0;
+
+    /**
+     * @var string
+     */
+    private $cache = '../temp/cache';
 
     /**
      * @var string
@@ -68,6 +74,7 @@ final class LogCheckerPanel implements IBarPanel
     /**
      * LogCheckerPanel constructor
      *
+     * @param string $cache
      * @param string $order
      * @param array  $excludedTypes
      * @param array  $excludedMessages
@@ -75,12 +82,20 @@ final class LogCheckerPanel implements IBarPanel
      * @param array  $excludedUrls
      */
     public function __construct(
+        string $cache = '../temp/cache',
         string $order = self::ORDER_BY_TIMESTAMP,
         array $excludedTypes = [],
         array $excludedMessages = [],
         array $excludedPaths = [],
         array $excludedUrls = []
     ) {
+        $cache = sprintf('%s/%s', Debugger::$logDirectory, $cache);
+
+        if (!file_exists($cache)) {
+            mkdir($cache, 0777, TRUE);
+        }
+
+        $this->cache            = realpath($cache) ?: $cache;
         $this->order            = $order;
         $this->excludedTypes    = $excludedTypes;
         $this->excludedMessages = $excludedMessages;
@@ -89,8 +104,10 @@ final class LogCheckerPanel implements IBarPanel
 
         $url      = self::getCurrentUrl();
         $urlQuery = parse_url($url, PHP_URL_QUERY);
+
         if (is_string($urlQuery)) {
             parse_str($urlQuery, $result);
+
             if (isset($result['log-checker-file-select'])) {
                 $this->handleFileSelect($result['log-checker-file-select']);
             }
@@ -141,6 +158,28 @@ final class LogCheckerPanel implements IBarPanel
     private function processLogs(): void
     {
         $logFiles = glob(sprintf('%s/*.log', Debugger::$logDirectory));
+        $logSizes = array_sum(
+            array_map(
+                function (string $file): int {
+                    return (new SplFileInfo($file))->getSize();
+                },
+                $logFiles
+            )
+        );
+
+        $cache = sprintf('%s/%s', $this->cache, self::CACHE);
+
+        if (file_exists($cache)) {
+            $cache = unserialize(file_get_contents($cache) ?: '');
+
+            if ($cache !== FALSE && $cache['size'] === $logSizes) {
+                $this->logs             = $cache['logs'];
+                $this->logsCount        = $cache['logsCount'];
+                $this->occurrencesCount = $cache['occurrencesCount'];
+
+                return;
+            }
+        }
 
         foreach ($logFiles as $logFile) {
             $logFile = new SplFileInfo($logFile);
@@ -204,6 +243,18 @@ final class LogCheckerPanel implements IBarPanel
 
                 return $two->getTimestamp() <=> $one->getTimestamp();
             }
+        );
+
+        file_put_contents(
+            sprintf('%s/%s', $this->cache, self::CACHE),
+            serialize(
+                [
+                    'size'             => $logSizes,
+                    'logs'             => $this->logs,
+                    'logsCount'        => $this->logsCount,
+                    'occurrencesCount' => $this->occurrencesCount,
+                ]
+            )
         );
     }
 

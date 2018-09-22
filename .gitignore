@@ -1,6 +1,7 @@
 .idea/*
 docker/*
 log/*
+temp/*
 vendor/*
 www/*
 build.ps1
