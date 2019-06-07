@@ -8,7 +8,7 @@
     },
     "require": {
         "php": "^7.1",
-        "tracy/tracy": "^2.5"
+        "tracy/tracy": "^2.6"
     },
     "require-dev": {
         "radek-bruha/coding-standard": "^1.0"

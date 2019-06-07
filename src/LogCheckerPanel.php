@@ -157,10 +157,11 @@ final class LogCheckerPanel implements IBarPanel
      */
     private function processLogs(): void
     {
+        /** @var array $logFiles */
         $logFiles = glob(sprintf('%s/*.log', Debugger::$logDirectory));
         $logSizes = array_sum(
             array_map(
-                function (string $file): int {
+                static function (string $file): int {
                     return (new SplFileInfo($file))->getSize();
                 },
                 $logFiles
@@ -309,6 +310,7 @@ final class LogCheckerPanel implements IBarPanel
      */
     private function handleFileDelete(string $file): void
     {
+        /** @var array $logFiles */
         $logFiles = glob(sprintf('%s/*.log', Debugger::$logDirectory));
 
         foreach ($logFiles as $logFile) {
@@ -338,9 +340,9 @@ final class LogCheckerPanel implements IBarPanel
      */
     private function handleDirectoryDelete(): void
     {
+        /** @var array $logFiles */
         $logFiles = glob(sprintf('%s/*.*', Debugger::$logDirectory));
 
-        /** @var SplFileInfo $object */
         foreach ($logFiles as $logFile) {
             $logFile = new SplFileInfo($logFile);
             $logPath = $logFile->getRealPath();
