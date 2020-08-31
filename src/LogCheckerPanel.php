@@ -29,57 +29,57 @@ final class LogCheckerPanel implements IBarPanel
     /**
      * @var Log[]
      */
-    private $logs = [];
+    private array $logs = [];
 
     /**
      * @var int
      */
-    private $logsCount = 0;
+    private int $logsCount = 0;
 
     /**
      * @var int
      */
-    private $occurrencesCount = 0;
+    private int $occurrencesCount = 0;
 
     /**
      * @var string
      */
-    private $cache = '../temp/cache';
+    private string $cache = '../temp/cache';
 
     /**
      * @var string
      */
-    private $order = self::ORDER_BY_TIMESTAMP;
+    private string $order = self::ORDER_BY_TIMESTAMP;
 
     /**
-     * @var array
+     * @var mixed[]
      */
-    private $excludedTypes = [];
+    private array $excludedTypes = [];
 
     /**
-     * @var array
+     * @var mixed[]
      */
-    private $excludedMessages = [];
+    private array $excludedMessages = [];
 
     /**
-     * @var array
+     * @var mixed[]
      */
-    private $excludedPaths = [];
+    private array $excludedPaths = [];
 
     /**
-     * @var array
+     * @var mixed[]
      */
-    private $excludedUrls = [];
+    private array $excludedUrls = [];
 
     /**
      * LogCheckerPanel constructor
      *
-     * @param string $cache
-     * @param string $order
-     * @param array  $excludedTypes
-     * @param array  $excludedMessages
-     * @param array  $excludedPaths
-     * @param array  $excludedUrls
+     * @param string  $cache
+     * @param string  $order
+     * @param mixed[] $excludedTypes
+     * @param mixed[] $excludedMessages
+     * @param mixed[] $excludedPaths
+     * @param mixed[] $excludedUrls
      */
     public function __construct(
         string $cache = '../temp/cache',
@@ -92,10 +92,10 @@ final class LogCheckerPanel implements IBarPanel
         $cache = sprintf('%s/%s', Debugger::$logDirectory, $cache);
 
         if (!file_exists($cache)) {
-            mkdir($cache, 0777, TRUE);
+            mkdir($cache, 0_777, TRUE);
         }
 
-        $this->cache            = realpath($cache) ?: $cache;
+        $this->cache            = (string) realpath($cache);
         $this->order            = $order;
         $this->excludedTypes    = $excludedTypes;
         $this->excludedMessages = $excludedMessages;
@@ -149,7 +149,30 @@ final class LogCheckerPanel implements IBarPanel
 
         include __DIR__ . '/LogCheckerPanel.phtml';
 
-        return ob_get_clean() ?: '';
+        return (string) ob_get_clean();
+    }
+
+    /**
+     * @param int|float $number
+     * @param int       $decimals
+     *
+     * @return string
+     */
+    public static function number($number, int $decimals = 0): string
+    {
+        return number_format($number, $decimals, '.', ' ');
+    }
+
+    /**
+     * @param string $link
+     *
+     * @return string
+     */
+    public static function link(string $link): string
+    {
+        $url = self::getCurrentUrl();
+
+        return sprintf('%s%s%s', $url, strpos($url, '?') === FALSE ? '?' : '&', $link);
     }
 
     /**
@@ -157,21 +180,16 @@ final class LogCheckerPanel implements IBarPanel
      */
     private function processLogs(): void
     {
-        /** @var array $logFiles */
+        /** @var mixed[] $logFiles */
         $logFiles = glob(sprintf('%s/*.log', Debugger::$logDirectory));
         $logSizes = array_sum(
-            array_map(
-                static function (string $file): int {
-                    return (new SplFileInfo($file))->getSize();
-                },
-                $logFiles
-            )
+            array_map(static fn (string $file): int => (new SplFileInfo($file))->getSize(), $logFiles)
         );
 
         $cache = sprintf('%s/%s', $this->cache, self::CACHE);
 
         if (file_exists($cache)) {
-            $cache = unserialize(file_get_contents($cache) ?: '');
+            $cache = unserialize((string) file_get_contents($cache));
 
             if ($cache !== FALSE && $cache['size'] === $logSizes) {
                 $this->logs             = $cache['logs'];
@@ -187,7 +205,8 @@ final class LogCheckerPanel implements IBarPanel
             $logPath = $logFile->getRealPath();
 
             if (is_string($logPath)) {
-                $logLines = array_reverse(file($logPath) ?: []);
+                /** @var mixed[] $logLines */
+                $logLines = array_reverse((array) file($logPath));
 
                 foreach ($logLines as $logLine) {
                     preg_match(self::LOGS_REGEX, $logLine, $matches);
@@ -206,14 +225,11 @@ final class LogCheckerPanel implements IBarPanel
 
                     if ($this->isSatisfying($logLine)) {
                         $this->occurrencesCount += 1;
+                        /** @var DateTimeImmutable $timestamp */
+                        $timestamp = DateTimeImmutable::createFromFormat('Y-m-d H-i-s', $matches[1]);
 
                         $log = (new Log())
-                            ->setTimestamp(
-                                DateTimeImmutable::createFromFormat(
-                                    'Y-m-d H-i-s',
-                                    $matches[1]
-                                ) ?: new DateTimeImmutable()
-                            )
+                            ->setTimestamp($timestamp)
                             ->setType($matches[2])
                             ->setMessage($matches[3])
                             ->setPath($matches[4])
@@ -310,7 +326,7 @@ final class LogCheckerPanel implements IBarPanel
      */
     private function handleFileDelete(string $file): void
     {
-        /** @var array $logFiles */
+        /** @var mixed[] $logFiles */
         $logFiles = glob(sprintf('%s/*.log', Debugger::$logDirectory));
 
         foreach ($logFiles as $logFile) {
@@ -340,7 +356,7 @@ final class LogCheckerPanel implements IBarPanel
      */
     private function handleDirectoryDelete(): void
     {
-        /** @var array $logFiles */
+        /** @var mixed[] $logFiles */
         $logFiles = glob(sprintf('%s/*.*', Debugger::$logDirectory));
 
         foreach ($logFiles as $logFile) {
@@ -362,33 +378,10 @@ final class LogCheckerPanel implements IBarPanel
     {
         return sprintf(
             '%s://%s%s',
-            isset($_SERVER['HTTPS']) ? 'https' : 'http',
-            $_SERVER['HTTP_HOST'],
-            $_SERVER['REQUEST_URI']
+            filter_input(INPUT_SERVER, 'HTTPS') !== FALSE ? 'https' : 'http',
+            (string) filter_input(INPUT_SERVER, 'HTTP_HOST'),
+            (string) filter_input(INPUT_SERVER, 'REQUEST_URI')
         );
-    }
-
-    /**
-     * @param int|float $number
-     * @param int       $decimals
-     *
-     * @return string
-     */
-    public static function number($number, int $decimals = 0): string
-    {
-        return number_format($number, $decimals, '.', ' ');
-    }
-
-    /**
-     * @param string $link
-     *
-     * @return string
-     */
-    public static function link(string $link): string
-    {
-        $url = self::getCurrentUrl();
-
-        return sprintf('%s%s%s', $url, strpos($url, '?') === FALSE ? '?' : '&', $link);
     }
 
 }

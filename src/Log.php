@@ -15,42 +15,42 @@ final class Log
     /**
      * @var DateTimeImmutable
      */
-    private $timestamp;
+    private DateTimeImmutable $timestamp;
 
     /**
      * @var string
      */
-    private $type;
+    private string $type;
 
     /**
      * @var string
      */
-    private $message;
+    private string $message;
 
     /**
      * @var string
      */
-    private $path;
+    private string $path;
 
     /**
      * @var string
      */
-    private $url;
+    private string $url;
 
     /**
      * @var string
      */
-    private $file;
+    private string $file;
 
     /**
      * @var string
      */
-    private $hash;
+    private string $hash;
 
     /**
      * @var Log[]
      */
-    private $innerLogs = [];
+    private array $innerLogs = [];
 
     /**
      * @return DateTimeImmutable

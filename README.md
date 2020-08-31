@@ -20,3 +20,7 @@ tracy:
     logSeverity: E_ALL
     bar: [Bruha\Tracy\LogCheckerPanel()]
 ```
+
+**Example Website Usage**
+
+![Tracy Log Checker](https://i.imgur.com/jFDduH4.png)

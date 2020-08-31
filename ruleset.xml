@@ -4,7 +4,9 @@
 
     <rule ref='SlevomatCodingStandard.Files.TypeNameMatchesFileName'>
         <properties>
-            <property name='rootNamespaces' type='array' value='src=>Bruha\Tracy'/>
+            <property name='rootNamespaces' type='array'>
+                <element key='src' value='Bruha\Tracy'/>
+            </property>
         </properties>
     </rule>
 </ruleset>

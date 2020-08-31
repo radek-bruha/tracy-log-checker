@@ -1,14 +1,16 @@
 {
     "name": "radek-bruha/tracy-log-checker",
+    "description": "Tracy Log Checker Extension",
     "license": "unlicense",
+    "type": "library",
     "autoload": {
         "psr-4": {
             "Bruha\\Tracy\\": "src"
         }
     },
     "require": {
-        "php": "^7.1",
-        "tracy/tracy": "^2.6"
+        "php": "^7.4",
+        "tracy/tracy": "^2.7"
     },
     "require-dev": {
         "radek-bruha/coding-standard": "^1.0"
@@ -17,10 +19,5 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "extra": {
-        "enable-patching": true
     }
 }

@@ -1,11 +1,8 @@
-.idea/*
-log/*
-temp/*
-vendor/*
-www/*
+.idea
+var
+vendor
+www
 composer.lock
 docker-compose.yml
-fast.ps1
-full.ps1
+Makefile
 nginx.config
-start.ps1
