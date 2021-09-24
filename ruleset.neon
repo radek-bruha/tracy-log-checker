@@ -1,6 +1,0 @@
-includes:
-    - vendor/radek-bruha/coding-standard/src/ruleset.neon
-
-parameters:
-    ignoreErrors:
-        - '/Expression ".+" on a separate line does not do anything/'

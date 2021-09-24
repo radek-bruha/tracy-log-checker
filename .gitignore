@@ -1,8 +1,5 @@
 .idea
-var
 vendor
-www
 composer.lock
-docker-compose.yml
+docker-compose.yaml
 Makefile
-nginx.config

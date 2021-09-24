@@ -9,11 +9,8 @@
         }
     },
     "require": {
-        "php": "^7.4",
-        "tracy/tracy": "^2.7"
-    },
-    "require-dev": {
-        "radek-bruha/coding-standard": "^1.0"
+        "php": "^8.0",
+        "tracy/tracy": "^2.8"
     },
     "config": {
         "optimize-autoloader": true,

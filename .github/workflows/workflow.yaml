@@ -1,0 +1,22 @@
+name: Workflow
+
+on:
+    push:
+        branches:
+            - master
+    schedule:
+        -   cron: '0 0 * * *'
+
+jobs:
+    job:
+        name: Job
+        runs-on: ubuntu-20.04
+        steps:
+            -   uses: actions/checkout@v2
+            -   uses: shivammathur/setup-php@v2
+                with:
+                    tools: phpstan
+            -   name: Step
+                run: |
+                    composer install --no-ansi
+                    phpstan analyse src -l 8  --no-ansi
