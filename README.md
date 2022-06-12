@@ -11,14 +11,14 @@ composer require radek-bruha/tracy-log-checker
 **Tracy Usage**
 ```php
 Tracy\Debugger::$logSeverity = E_ALL;
-Tracy\Debugger::getBar()->addPanel(new Bruha\Tracy\LogCheckerPanel());
+Tracy\Debugger::getBar()->addPanel(new \Bruha\Tracy\LogCheckerPanel());
 ```
 
 **Nette Framework Usage**
 ```yml
 tracy:
     logSeverity: E_ALL
-    bar: [Bruha\Tracy\LogCheckerPanel()]
+    bar: [\Bruha\Tracy\LogCheckerPanel()]
 ```
 
 **Example Website Usage**
