@@ -1,6 +1,6 @@
 # [**Tracy**](https://github.com/nette/tracy) Log Checker
 [![Downloads](https://img.shields.io/packagist/dt/radek-bruha/tracy-log-checker.svg?style=flat-square)](https://packagist.org/packages/radek-bruha/tracy-log-checker)
-[![Build Status](https://img.shields.io/github/workflow/status/radek-bruha/tracy-log-checker/Workflow?style=flat-square)](https://github.com/radek-bruha/tracy-log-checker/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/radek-bruha/tracy-log-checker/workflow.yaml?style=flat-square)](https://github.com/radek-bruha/tracy-log-checker/actions)
 [![Latest Stable Version](https://img.shields.io/github/release/radek-bruha/tracy-log-checker.svg?style=flat-square)](https://github.com/radek-bruha/tracy-log-checker/releases)
 
 **Usage**

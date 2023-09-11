@@ -7,11 +7,6 @@ use SplFileInfo;
 use Tracy\Debugger;
 use Tracy\IBarPanel;
 
-/**
- * Class LogCheckerPanel
- *
- * @package Bruha\Tracy
- */
 final class LogCheckerPanel implements IBarPanel
 {
 
@@ -31,21 +26,11 @@ final class LogCheckerPanel implements IBarPanel
      */
     private array $logs = [];
 
-    /**
-     * @var int
-     */
     private int $logsCount = 0;
 
-    /**
-     * @var int
-     */
     private int $occurrencesCount = 0;
 
     /**
-     * LogCheckerPanel constructor
-     *
-     * @param string  $cache
-     * @param string  $order
      * @param string[] $excludedTypes
      * @param string[] $excludedMessages
      * @param string[] $excludedPaths
@@ -53,11 +38,11 @@ final class LogCheckerPanel implements IBarPanel
      */
     public function __construct(
         private string $cache = '../temp/cache',
-        private string $order = self::ORDER_BY_TIMESTAMP,
+        private readonly string $order = self::ORDER_BY_TIMESTAMP,
         private readonly array $excludedTypes = [],
         private readonly array $excludedMessages = [],
         private readonly array $excludedPaths = [],
-        private readonly array $excludedUrls = []
+        private readonly array $excludedUrls = [],
     ) {
         $cache = sprintf('%s/%s', Debugger::$logDirectory, $cache);
 
@@ -73,15 +58,15 @@ final class LogCheckerPanel implements IBarPanel
         if (is_string($urlQuery)) {
             parse_str($urlQuery, $result);
 
-            if (isset($result['log-checker-file-select'])) {
+            if (isset($result['log-checker-file-select']) && is_string($result['log-checker-file-select'])) {
                 $this->handleFileSelect($result['log-checker-file-select']);
             }
 
-            if (isset($result['log-checker-file-delete'])) {
+            if (isset($result['log-checker-file-delete']) && is_string($result['log-checker-file-delete'])) {
                 $this->handleFileDelete($result['log-checker-file-delete']);
             }
 
-            if (isset($result['log-checker-directory-delete'])) {
+            if (isset($result['log-checker-directory-delete']) && is_string($result['log-checker-directory-delete'])) {
                 $this->handleDirectoryDelete();
             }
         }
@@ -89,17 +74,11 @@ final class LogCheckerPanel implements IBarPanel
         $this->processLogs();
     }
 
-    /**
-     * @return string
-     */
     public function getTab(): string
     {
         return sprintf(self::LABEL, $this->logs !== [] ? self::ERROR : self::SUCCESS);
     }
 
-    /**
-     * @return string
-     */
     public function getPanel(): string
     {
         ob_start();
@@ -113,22 +92,11 @@ final class LogCheckerPanel implements IBarPanel
         return (string) ob_get_clean();
     }
 
-    /**
-     * @param int|float $number
-     * @param int       $decimals
-     *
-     * @return string
-     */
     public static function number(int|float $number, int $decimals = 0): string
     {
         return number_format($number, $decimals, '.', ' ');
     }
 
-    /**
-     * @param string $link
-     *
-     * @return string
-     */
     public static function link(string $link): string
     {
         $url = self::getCurrentUrl();
@@ -136,14 +104,12 @@ final class LogCheckerPanel implements IBarPanel
         return sprintf('%s%s%s', $url, !str_contains($url, '?') ? '?' : '&', $link);
     }
 
-    /**
-     *
-     */
     private function processLogs(): void
     {
         /** @var string[] $logFiles */
         $logFiles = glob(sprintf('%s/*.log', Debugger::$logDirectory));
-        $logSizes = array_sum(array_map(static fn(string $file): int => (new SplFileInfo($file))->getSize(), $logFiles));
+        $callback = static fn(string $file): int => (new SplFileInfo($file))->getSize();
+        $logSizes = array_sum(array_map($callback, $logFiles));
         $cache    = sprintf('%s/%s', $this->cache, self::CACHE);
 
         if (file_exists($cache)) {
@@ -169,7 +135,7 @@ final class LogCheckerPanel implements IBarPanel
                 foreach ($logLines as $logLine) {
                     preg_match(self::LOGS_REGEX, $logLine, $matches);
 
-                    if (!$matches || count($matches) !== 7) {
+                    if (count($matches) !== 7) {
                         continue;
                     }
 
@@ -183,8 +149,11 @@ final class LogCheckerPanel implements IBarPanel
 
                     if ($this->isSatisfying($logLine)) {
                         $this->occurrencesCount += 1;
-                        /** @var DateTimeImmutable $timestamp */
-                        $timestamp = DateTimeImmutable::createFromFormat('Y-m-d H-i-s', $matches[1]);
+                        $timestamp               = DateTimeImmutable::createFromFormat('Y-m-d H-i-s', $matches[1]);
+
+                        if ($timestamp === FALSE) {
+                            continue;
+                        }
 
                         $log = (new Log())
                             ->setTimestamp($timestamp)
@@ -217,7 +186,7 @@ final class LogCheckerPanel implements IBarPanel
                 }
 
                 return $two->getTimestamp() <=> $one->getTimestamp();
-            }
+            },
         );
 
         file_put_contents(
@@ -228,16 +197,11 @@ final class LogCheckerPanel implements IBarPanel
                     'logs'             => $this->logs,
                     'logsCount'        => $this->logsCount,
                     'occurrencesCount' => $this->occurrencesCount,
-                ]
-            )
+                ],
+            ),
         );
     }
 
-    /**
-     * @param string $content
-     *
-     * @return bool
-     */
     private function isSatisfying(string $content): bool
     {
         foreach ($this->excludedTypes as $excludedType) {
@@ -267,9 +231,6 @@ final class LogCheckerPanel implements IBarPanel
         return TRUE;
     }
 
-    /**
-     * @param string $file
-     */
     private function handleFileSelect(string $file): void
     {
         $file = sprintf('%s/%s', Debugger::$logDirectory, $file);
@@ -279,9 +240,6 @@ final class LogCheckerPanel implements IBarPanel
         }
     }
 
-    /**
-     * @param string $file
-     */
     private function handleFileDelete(string $file): void
     {
         /** @var string[] $logFiles */
@@ -309,9 +267,6 @@ final class LogCheckerPanel implements IBarPanel
         header(sprintf('Location: %s', parse_url(self::getCurrentUrl(), PHP_URL_PATH)));
     }
 
-    /**
-     *
-     */
     private function handleDirectoryDelete(): void
     {
         /** @var string[] $logFiles */
@@ -329,16 +284,13 @@ final class LogCheckerPanel implements IBarPanel
         header(sprintf('Location: %s', parse_url(self::getCurrentUrl(), PHP_URL_PATH)));
     }
 
-    /**
-     * @return string
-     */
     private static function getCurrentUrl(): string
     {
         return sprintf(
             '%s://%s%s',
-            (string) filter_input(INPUT_SERVER, 'REQUEST_SCHEME'),
-            (string) filter_input(INPUT_SERVER, 'HTTP_HOST'),
-            (string) filter_input(INPUT_SERVER, 'REQUEST_URI')
+            filter_input(INPUT_SERVER, 'REQUEST_SCHEME'),
+            filter_input(INPUT_SERVER, 'HTTP_HOST'),
+            filter_input(INPUT_SERVER, 'REQUEST_URI'),
         );
     }
 
